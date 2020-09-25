@@ -1,0 +1,282 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: prod
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: dev
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: test
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-frontend
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: prod
+      svc: app-frontend 
+  template:
+    metadata:
+      labels:
+        env: prod
+        svc: app-frontend   
+    spec:
+      containers:
+        - name: app-frontend
+          image: 'cptscience/namereacher-webfront:v3'
+          command: ["/usr/bin/supervisord", "-n"]
+          env:
+            - name: PYTHONPATH
+              value: "/var/run/nameReacher/"
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: URLLOCAL
+              value: "http://app-backend.default.svc.cluster.local:8000"
+            - name: URL1
+              value: "http://app-backend.test.svc.cluster.local:8000"
+            - name: URL2
+              value: "http://app-backend.dev.svc.cluster.local:8000"
+            - name: URL3
+              value: "http://app-backend.prod.svc.cluster.local:8000"
+          ports:
+            - name: namereacher-web
+              containerPort: 80
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-frontend
+  namespace: prod
+  labels:
+    svc: app-frontend
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: 80
+    protocol: TCP
+  selector:
+    env: prod
+    svc: app-frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-frontend
+  namespace: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: test
+      svc: app-frontend   
+  template:
+    metadata:
+      labels:
+        env: test
+        svc: app-frontend   
+    spec:
+      containers:
+        - name: reacher-web
+          image: 'cptscience/namereacher-webfront:v3'
+          command: ["/usr/bin/supervisord", "-n"]
+          env:
+            - name: PYTHONPATH
+              value: "/var/run/nameReacher/"
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: URLLOCAL
+              value: "http://app-backend.default.svc.cluster.local:8000"
+            - name: URL1
+              value: "http://app-backend.test.svc.cluster.local:8000"
+            - name: URL2
+              value: "http://app-backend.dev.svc.cluster.local:8000"
+            - name: URL3
+              value: "http://app-backend.prod.svc.cluster.local:8000"
+          ports:
+            - name: namereacher-web
+              containerPort: 80
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-frontend
+  namespace: test
+  labels:
+    svc: app-frontend
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: 80
+    protocol: TCP
+  selector:
+    env: test
+    svc: app-frontend
+    
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-frontend
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: dev
+      svc: app-frontend
+      
+  template:
+    metadata:
+      labels:
+        env: dev
+        svc: app-frontend
+        
+    spec:
+      containers:
+        - name: reacher-web
+          image: 'cptscience/namereacher-webfront:v3'
+          command: ["/usr/bin/supervisord", "-n"]
+          env:
+            - name: PYTHONPATH
+              value: "/var/run/nameReacher/"
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: URLLOCAL
+              value: "http://app-backend.default.svc.cluster.local:8000"
+            - name: URL1
+              value: "http://app-backend.test.svc.cluster.local:8000"
+            - name: URL2
+              value: "http://app-backend.dev.svc.cluster.local:8000"
+            - name: URL3
+              value: "http://app-backend.prod.svc.cluster.local:8000"
+          ports:
+            - name: namereacher-web
+              containerPort: 80
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-frontend
+  namespace: dev
+  labels:
+    svc: app-frontend
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: 80
+    protocol: TCP
+  selector:
+    env: dev
+    svc: app-frontend
+    
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-frontend
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: default
+      svc: app-frontend  
+  template:
+    metadata:
+      labels:
+        env: default
+        svc: app-frontend
+    spec:
+      containers:
+        - name: reacher-web
+          image: 'cptscience/namereacher-webfront:v3'
+          command: ["/usr/bin/supervisord", "-n"]
+          env:
+            - name: PYTHONPATH
+              value: "/var/run/nameReacher/"
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: URLLOCAL
+              value: "http://app-backend.default.svc.cluster.local:8000"
+            - name: URL1
+              value: "http://app-backend.test.svc.cluster.local:8000"
+            - name: URL2
+              value: "http://app-backend.dev.svc.cluster.local:8000"
+            - name: URL3
+              value: "http://app-backend.prod.svc.cluster.local:8000"
+          ports:
+            - name: namereacher-web
+              containerPort: 80
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-frontend
+  labels:
+    svc: app-frontend
+spec:
+  type: LoadBalancer
+  ports:
+  - name: web
+    port: 80
+    protocol: TCP
+  selector:
+    env: default
+    svc: app-frontend
+    

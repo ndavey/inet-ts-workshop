@@ -1,0 +1,262 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: prod
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: dev
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: test
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: dev
+  name: app-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      svc: app-backend
+      env: dev
+  template:
+    metadata:
+      labels:
+        env: dev
+        svc: app-backend
+    spec:
+      containers:
+        - name: backend-app
+          image: 'cptscience/nodebeaker-app:v2-alpha2'
+          command:
+          - /usr/local/bin/gunicorn
+          - wsgi:app
+          - --bind
+          - 0.0.0.0:8000
+          env:
+            - name: PYTHONPATH
+              value: "/var/run/nodeBeaker/"
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: nodebeaker
+              containerPort: 8000
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: dev
+  name: app-backend
+  labels:
+    svc: app-backend
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: 8000
+    protocol: TCP
+  selector:
+    env: dev
+    svc: app-backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: test
+  name: app-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: test
+      svc: app-backend
+  template:
+    metadata:
+      labels:
+        env: test
+        svc: app-backend
+    spec:
+      containers:
+        - name: backend-app
+          image: 'cptscience/nodebeaker-app:v2-alpha2'
+          command:
+          - /usr/local/bin/gunicorn
+          - wsgi:app
+          - --bind
+          - 0.0.0.0:8000
+          env:
+            - name: PYTHONPATH
+              value: "/var/run/nodeBeaker/"
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: nodebeaker
+              containerPort: 8000
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: test
+  name: app-backend
+  labels:
+    svc: app-backend
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: 8000
+    protocol: TCP
+  selector:
+    env: test
+    svc: app-backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prod
+  name: app-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: prod
+      svc: app-backend
+  template:
+    metadata:
+      labels:
+        env: prod
+        svc: app-backend
+    spec:
+      containers:
+        - name: app-backend
+          image: 'cptscience/nodebeaker-app:v2-alpha2'
+          command:
+          - /usr/local/bin/gunicorn
+          - wsgi:app
+          - --bind
+          - 0.0.0.0:8000
+          env:
+            - name: PYTHONPATH
+              value: "/var/run/nodeBeaker/"
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: nodebeaker
+              containerPort: 8000
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: prod
+  name: app-backend
+  labels:
+    svc: app-backend
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: 8000
+    protocol: TCP
+  selector:
+    env: prod
+    svc: app-backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: app-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: default
+      svc: app-backend
+  template:
+    metadata:
+      labels:
+        env: default
+        svc: app-backend
+    spec:
+      containers:
+        - name: app-backend
+          image: 'cptscience/nodebeaker-app:v2-alpha2'
+          command:
+          - /usr/local/bin/gunicorn
+          - wsgi:app
+          - --bind
+          - 0.0.0.0:8000
+          env:
+            - name: PYTHONPATH
+              value: "/var/run/nodeBeaker/"
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: nodebeaker
+              containerPort: 8000
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: default
+  name: app-backend
+  labels:
+    svc: app-backend
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: 8000
+    protocol: TCP
+  selector:
+    env: default
+    svc: app-backend

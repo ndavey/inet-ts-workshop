@@ -1,0 +1,55 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: app-frontend
+  annotations:
+    deployment.kubernetes.io/revision: '1'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      svc: app-frontend
+  template:
+    metadata:
+      labels:
+        svc: app-frontend
+    spec:
+      containers:
+        - name: frontend
+          command:
+            - /usr/bin/supervisord
+            - '-n'
+          env:
+            - name: SERVICE_NAME
+              value: app-backend
+            - name: PYTHONPATH
+              value: /var/run/nodeBeaker/
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          imagePullPolicy: IfNotPresent
+          image: 'cptscience/nodebeaker-webfront:v2-alpha8'
+      restartPolicy: Always
+
